@@ -55,6 +55,10 @@ function getCheckoutItems(userId) {
   ).all(userId);
 }
 
+function findInvalidQuantityItems(cartItems) {
+  return cartItems.filter(item => !Number.isInteger(item.quantity) || item.quantity <= 0);
+}
+
 function findInsufficientItems(cartItems) {
   return cartItems.filter(item => item.quantity > item.product_stock);
 }
@@ -65,6 +69,10 @@ function findInsufficientItems(cartItems) {
  * Amounts must already be calculated by the caller.
  */
 function createOrderFromCart({ userId, recipient, delivery, cartItems, subtotal, shipping }) {
+  if (!cartItems.every(item => Number.isInteger(item.quantity) && item.quantity > 0)) {
+    throw new TypeError('購物車項目 quantity 必須為正整數');
+  }
+
   const orderId = uuidv4();
   const orderNo = generateOrderNo();
   const merchantTradeNo = orderNo.replace(/-/g, '');
@@ -120,6 +128,7 @@ module.exports = {
   getOrderItems,
   getOrderItemSummaries,
   getCheckoutItems,
+  findInvalidQuantityItems,
   findInsufficientItems,
   createOrderFromCart
 };

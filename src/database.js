@@ -107,6 +107,22 @@ function initializeDatabase() {
 
   db.prepare('UPDATE orders SET subtotal = total_amount WHERE subtotal = 0').run();
 
+  // Migration: enforce positive-integer quantity on new writes. Triggers (not CHECK) so
+  // existing databases are covered without rebuilding tables or touching legacy rows.
+  for (const table of ['cart_items', 'order_items']) {
+    for (const event of ['INSERT', 'UPDATE OF quantity']) {
+      const name = `trg_${table}_quantity_${event === 'INSERT' ? 'insert' : 'update'}`;
+      db.exec(`
+        CREATE TRIGGER IF NOT EXISTS ${name}
+        BEFORE ${event} ON ${table}
+        WHEN NEW.quantity <= 0 OR NEW.quantity != CAST(NEW.quantity AS INTEGER)
+        BEGIN
+          SELECT RAISE(ABORT, 'quantity must be a positive integer');
+        END;
+      `);
+    }
+  }
+
   // Seed data
   seedAdminUser();
   seedProducts();
