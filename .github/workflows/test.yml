@@ -14,6 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    # 敏感值走 GitHub Secrets；測試用值另由 tests/setup/testEnvironment.js 設定
+    env:
+      NODE_ENV: test
+      PORT: 3001
+      BASE_URL: http://localhost:3001
+      FRONTEND_URL: http://localhost:3001
+      ECPAY_ENV: staging
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      ECPAY_MERCHANT_ID: ${{ secrets.ECPAY_MERCHANT_ID }}
+      ECPAY_HASH_KEY: ${{ secrets.ECPAY_HASH_KEY }}
+      ECPAY_HASH_IV: ${{ secrets.ECPAY_HASH_IV }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5

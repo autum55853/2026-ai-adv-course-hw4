@@ -70,6 +70,59 @@ describe('Cart API', () => {
     expect(cartRes.body.data.items.length).toBe(0);
   });
 
+  it('should reject invalid quantity on PATCH', async () => {
+    const addRes = await request(app)
+      .post('/api/cart')
+      .set('X-Session-Id', sessionId)
+      .send({ productId, quantity: 1 });
+    const itemId = addRes.body.data.id;
+
+    for (const quantity of [0, -1, 1.5, 0.125, 'abc', null]) {
+      const res = await request(app)
+        .patch(`/api/cart/${itemId}`)
+        .set('X-Session-Id', sessionId)
+        .send({ quantity });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('data', null);
+      expect(res.body).toHaveProperty('error', 'VALIDATION_ERROR');
+    }
+
+    await request(app).delete(`/api/cart/${itemId}`).set('X-Session-Id', sessionId);
+  });
+
+  it('should reject PATCH quantity above stock but accept exactly the stock', async () => {
+    const adminToken = await getAdminToken();
+    const created = await request(app)
+      .post('/api/admin/products')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'PATCH 庫存測試花束', description: '測試', price: 500, stock: 3 });
+    const limitedProductId = created.body.data.id;
+
+    const addRes = await request(app)
+      .post('/api/cart')
+      .set('X-Session-Id', sessionId)
+      .send({ productId: limitedProductId, quantity: 1 });
+    const itemId = addRes.body.data.id;
+
+    const over = await request(app)
+      .patch(`/api/cart/${itemId}`)
+      .set('X-Session-Id', sessionId)
+      .send({ quantity: 4 });
+    expect(over.status).toBe(400);
+    expect(over.body).toHaveProperty('data', null);
+    expect(over.body).toHaveProperty('error', 'STOCK_INSUFFICIENT');
+
+    const exact = await request(app)
+      .patch(`/api/cart/${itemId}`)
+      .set('X-Session-Id', sessionId)
+      .send({ quantity: 3 });
+    expect(exact.status).toBe(200);
+    expect(exact.body.data).toHaveProperty('quantity', 3);
+
+    await request(app).delete(`/api/cart/${itemId}`).set('X-Session-Id', sessionId);
+  });
+
   it('should add product to cart (authenticated mode)', async () => {
     const { token } = await registerUser();
     userToken = token;

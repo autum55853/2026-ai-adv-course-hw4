@@ -11,6 +11,7 @@ const {
   getOrderItems,
   getOrderItemSummaries,
   getCheckoutItems,
+  findInvalidQuantityItems,
   findInsufficientItems,
   createOrderFromCart
 } = require('../services/orderService');
@@ -161,6 +162,14 @@ router.post('/', (req, res) => {
       data: null,
       error: 'CART_EMPTY',
       message: '購物車為空'
+    });
+  }
+
+  if (findInvalidQuantityItems(cartItems).length > 0) {
+    return res.status(400).json({
+      data: null,
+      error: 'VALIDATION_ERROR',
+      message: '購物車商品數量必須為正整數'
     });
   }
 
@@ -348,7 +357,7 @@ router.get('/', (req, res) => {
  *         description: 訂單不存在
  */
 router.get('/:id', (req, res) => {
-  const order = findOrderById(req.params.id);
+  const order = findOrderForUser(req.params.id, req.user.userId);
 
   if (!order) {
     return res.status(404).json({ data: null, error: 'NOT_FOUND', message: '訂單不存在' });

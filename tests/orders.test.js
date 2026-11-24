@@ -1,4 +1,4 @@
-const { app, request, registerUser } = require('./setup');
+const { app, request, getAdminToken, registerUser } = require('./setup');
 
 describe('Orders API', () => {
   let userToken;
@@ -137,6 +137,52 @@ describe('Orders API', () => {
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('data', null);
     expect(res.body).toHaveProperty('error');
+  });
+
+  it('should return 404 when fetching another user\'s order', async () => {
+    const { token: otherToken } = await registerUser();
+
+    const res = await request(app)
+      .get(`/api/orders/${orderId}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('data', null);
+    expect(res.body).toHaveProperty('error', 'NOT_FOUND');
+  });
+
+  it.each([
+    [1499, 120, 1619],
+    [1500, 0, 1500],
+  ])('should price a %i subtotal with shipping fee %i and total %i (home delivery)', async (price, shippingFee, total) => {
+    const adminToken = await getAdminToken();
+    const created = await request(app)
+      .post('/api/admin/products')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: `免運邊界 ${price}`, description: '測試', price, stock: 5 });
+    const { token } = await registerUser();
+
+    await request(app)
+      .post('/api/cart')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId: created.body.data.id, quantity: 1 });
+
+    const res = await request(app)
+      .post('/api/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        recipientName: '測試收件人',
+        recipientEmail: 'recipient@example.com',
+        recipientAddress: '台北市測試路 123 號',
+        shippingMethod: 'home_delivery',
+        isRemoteArea: false,
+        isExpress: false,
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data).toHaveProperty('subtotal', price);
+    expect(res.body.data).toHaveProperty('shipping_fee', shippingFee);
+    expect(res.body.data).toHaveProperty('total_amount', total);
   });
 
   it('should reject non-string recipient fields', async () => {
