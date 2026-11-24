@@ -34,6 +34,7 @@ effort: high
    - 斷言是否被放寬（例如精確值改成 `toBeTruthy`、移除 `expect`、縮小測試資料、拿掉錯誤情境）。
    - 是否為了讓測試通過而修改測試，而不是修正實作。
    - 新增或修改的功能是否缺少對應測試。
+   - `tests/acceptance/**` 為受保護的驗收測試（settings.json 以 `Edit` deny 禁止編輯，但終端機指令如 `sed`、`>` 重導向仍可能改到）：diff 或 `git status` 只要出現該目錄的任何變更（修改、刪除、新增、重新命名），一律列為高嚴重度，除非使用者明確授權。
    - 測試是否違反專案規則：Vitest 必須使用記憶體/獨立 SQLite，不得動到專案 `database.sqlite`。
 
 ### 輸出格式
