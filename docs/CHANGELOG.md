@@ -5,12 +5,14 @@
 ## [Unreleased]
 
 ### Added
+- 我的訂單篩選與分頁（Issue #8）：`GET /api/orders` 支援 `status`、`page`、`limit`（預設 10、最大 50），回應新增 `pagination`；非法參數回 400。新增 `tests/orderList.test.js`
 - 結帳優惠碼（Issue #1）：新增 `src/utils/coupon.js`（`FLOWER100` 滿 800 折 100、`SPRING10` 9 折最多折 300、`SUMMER50` 已失效；不分大小寫、只折抵商品小計）
 - `POST /api/orders` 新增選填 `couponCode`；無效、已失效或未達門檻回 400 `COUPON_INVALID`，不建立訂單、不扣庫存、不清空購物車
 - 訂單新增 `coupon_code`、`discount` 欄位（含既有資料庫自動 migration）；建單、訂單列表、訂單詳情與後台訂單回應皆包含這兩個欄位；訂單詳情頁與後台訂單詳情在有折扣時顯示優惠折抵
 - 新增 `tests/coupon.test.js`（Coupon 單元測試）與 `tests/orderCoupon.test.js`（建單 API 測試）
 
 ### Changed
+- `listOrdersForUser` 改為接受篩選與分頁參數並回傳 `{ orders, total }`；前端訂單頁改為逐頁載入全部訂單
 - 免運門檻（1,500 元）改以折扣後的商品小計判斷；`total_amount = subtotal - discount + shipping_fee`
 - 抽出 `src/services/orderService.js`（訂單查詢、序列化與建單 transaction）與 `src/services/paymentService.js`（QueryTradeInfo 結果判斷與付款狀態更新）
 - 新增 `src/utils/validators.js` 統一路由輸入驗證；Shipping 模組改以規則表描述，單元測試改為 table-driven

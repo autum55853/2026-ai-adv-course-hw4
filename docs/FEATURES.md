@@ -295,9 +295,25 @@
 
 ### GET /api/orders — 訂單列表
 
-**行為描述**：回傳當前使用者的所有訂單，依建立時間降序排列。無分頁。
+**行為描述**：回傳當前使用者自己的訂單，依建立時間降序排列（同秒以新建立者優先），支援狀態篩選與分頁。
 
-**回應欄位**：id, order_no, subtotal, discount, coupon_code, shipping_fee, shipping_method, is_remote_area, is_express, total_amount, status, created_at
+**Query 參數**：
+
+| 參數 | 說明 |
+|------|------|
+| status | 選填，`pending`、`paid`、`failed` |
+| page | 選填，正整數，預設 1 |
+| limit | 選填，正整數，預設 10，最大 50（超過以 50 計） |
+
+**回應**：`{ data: { orders: [...], pagination: { page, limit, total, totalPages } }, error, message }`，分頁格式與 `GET /api/admin/orders` 相同。`page` 超出範圍時 `orders` 為空陣列。
+
+**訂單欄位**：id, order_no, subtotal, discount, coupon_code, shipping_fee, shipping_method, is_remote_area, is_express, total_amount, status, created_at
+
+**錯誤情境**：
+
+| 狀態碼 | error | 說明 |
+|--------|-------|------|
+| 400 | VALIDATION_ERROR | `status` 不在允許值，或 `page`、`limit` 不是正整數 |
 
 ### GET /api/orders/:id — 訂單詳情
 
