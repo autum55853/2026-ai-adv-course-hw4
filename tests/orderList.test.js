@@ -56,6 +56,8 @@ describe('GET /api/orders 篩選與分頁（邊界）', () => {
     '?status=',
     '?status=paid&status=pending',
     '?page=1&page=2',
+    '?page=99999999999999999999',
+    '?limit=99999999999999999999',
   ])('非法參數 %s 回傳 400 VALIDATION_ERROR 且 data 為 null', async query => {
     const res = await list(token, query);
     expect(res.status).toBe(400);

@@ -355,13 +355,13 @@ router.get('/', (req, res) => {
   let page = 1;
   if (req.query.page !== undefined) {
     page = parsePositiveInteger(req.query.page);
-    if (page === null) return invalid('page 必須為正整數');
+    if (page === null || !Number.isSafeInteger(page)) return invalid('page 必須為正整數');
   }
 
   let limit = DEFAULT_PAGE_LIMIT;
   if (req.query.limit !== undefined) {
     limit = parsePositiveInteger(req.query.limit);
-    if (limit === null) return invalid('limit 必須為正整數');
+    if (limit === null || !Number.isSafeInteger(limit)) return invalid('limit 必須為正整數');
     limit = Math.min(limit, MAX_PAGE_LIMIT);
   }
 
