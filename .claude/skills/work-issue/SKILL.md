@@ -2,7 +2,6 @@
 name: work-issue
 description: 處理一個 GitHub Issue 到「PR 待人工合併」為止：讀 Issue、開分支、實作並補測試、跑測試、更新 docs 與 openapi.json、開 PR、派 reviewer，最後把標籤改為 in-review。用 /work-issue <編號> 呼叫。不包含合併 PR。
 argument-hint: <issue 編號>
-disable-model-invocation: true
 ---
 
 # work-issue
@@ -14,7 +13,7 @@ disable-model-invocation: true
 ## 邊界（先讀，全程遵守）
 
 - **不合併 PR**：不得執行 `gh pr merge`、`git merge` 到 main、也不得對 main 直接 push。
-- **不修改 `tests/acceptance/**`**：驗收測試是規格，實作不過就改實作。需要改驗收測試時停下來問使用者。
+- **不修改 `tests/acceptance/**`\*\*：驗收測試是規格，實作不過就改實作。需要改驗收測試時停下來問使用者。
 - **不處理 Issue 範圍外的事**：Issue 的「不在本次範圍」不做；選做項目沒被要求就不做。範圍外的程式碼不順手改，發現問題寫進 PR 描述。
 - **權限被拒就停**：`git push`、`gh pr create` 等被權限規則擋下時，不換指令繞過。告訴使用者，請他用 `! <指令>` 自己執行，或加 allow 規則，等回覆後再繼續。
 - **不使用 `--force`、不改寫已推送的歷史**。
